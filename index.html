@@ -353,7 +353,7 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
       <button class="cat-btn" data-cat="baguetes">🥖 Baguetes</button>
       <button class="cat-btn" data-cat="docinhos">🍬 Docinhos</button>
       <button class="cat-btn" data-cat="salgados">🥟 Salgados</button>
-      <button class="cat-btn" data-cat="assados">🥐 Assados</button>
+      <button class="cat-btn" data-cat="assados">🥘 Assados</button>
     </div>
     <div class="produtos-grid" id="produtos-grid"><div class="empty-cat">Carregando cardápio...</div></div>
   </section>
@@ -547,15 +547,14 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
 // ══ FIREBASE CONFIG ══
 // ⚠️ Substitua com as credenciais do Firebase do projeto de ENCOMENDAS
 const firebaseConfig = {
-  apiKey: "AIzaSyAe7UdbQ983NJ7bIz2RV2QZl6QKsTLTSyI",
-  authDomain: "encomendas-pegpao.firebaseapp.com",
-  projectId: "encomendas-pegpao",
-  storageBucket: "encomendas-pegpao.firebasestorage.app",
-  messagingSenderId: "691406886346",
-  appId: "1:691406886346:web:c5501f45cfb62ed75dab33",
-  measurementId: "G-MQB8KT9DT0"
+  apiKey:            "COLE_AQUI_SUA_API_KEY",
+  authDomain:        "COLE_AQUI.firebaseapp.com",
+  databaseURL:       "https://COLE_AQUI-default-rtdb.firebaseio.com",
+  projectId:         "COLE_AQUI",
+  storageBucket:     "COLE_AQUI.firebasestorage.app",
+  messagingSenderId: "COLE_AQUI",
+  appId:             "COLE_AQUI"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.database();
 const auth = firebase.auth();
@@ -589,10 +588,9 @@ const PRODUTOS_DEFAULT = [
   { id:'sal-fr-50',   nome:'Salgados Fritos 50un',   cat:'salgados',          ico:'🥟', preco:65,  desc:'50 salgadinhos fritos. Coxinha, quibe, risole e mais.' },
   { id:'sal-fr-100',  nome:'Salgados Fritos 100un',  cat:'salgados',          ico:'🥟', preco:120, desc:'100 salgadinhos fritos variados. Perfeito para festas.' },
   { id:'sal-as-50',   nome:'Salgados Assados 50un',  cat:'salgados',          ico:'🥟', preco:60,  desc:'50 salgadinhos assados. Opção mais leve para festas.' },
-  { id:'ass-frango',  nome:'Enroladinho de Salsicha', cat:'assados',     ico:'🥐', preco:45,  desc:'Enroladinhos de Salsicha. Clássico enroladinho, preparado com massa macia.' },
-  { id:'ass-pernil',  nome:'Esfihas Fechadas',       cat:'assados',           ico:'🥐', preco:55,  desc:'Esfiha Fechada. Carne, frango, queijo ou calabreza.' },
-  { id:'ass-leitao',  nome:'Enroladinho de Frios', cat:'assados',        ico:'🥐', preco:70,  desc:'Enroladinho de Frios. Massa com presunto e muçarela.' }
-  
+  { id:'ass-frango',  nome:'Frango Assado (inteiro)', cat:'assados',           ico:'🥘', preco:45,  desc:'Frango assado temperado com ervas. Rende 4-6 pessoas.' },
+  { id:'ass-pernil',  nome:'Pernil Assado 1kg',      cat:'assados',           ico:'🥘', preco:55,  desc:'Pernil suíno assado e temperado. Porção de 1kg.' },
+  { id:'ass-leitao',  nome:'Leitão Assado (porção)', cat:'assados',           ico:'🥘', preco:70,  desc:'Porção de leitão assado crocante. Especialidade da casa.' }
 ];
 
 // ══ ESTADO ══
@@ -873,8 +871,33 @@ document.getElementById('btn-confirmar-pedido').addEventListener('click', async 
     criadoEm:Date.now()
   };
   try {
+    // Salva o pedido no Firebase
     await db.ref('pedidos/'+padariaEscolhida.id+'/'+num).set(ped);
     await db.ref('pedidos_cliente/'+currentUser.uid+'/'+num).set(ped);
+
+    // Se o cliente escolheu "Link de pagamento", gera o link do Mercado Pago
+    if (pagAtivo === 'link') {
+      const mpRes = await fetch('/api/criar-pagamento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          numeroPedido: num,
+          total,
+          itens: ped.itens,
+          clienteEmail: ped.clienteEmail,
+          clienteNome:  ped.clienteNome,
+          dataRetirada: ped.dataRetirada,
+        }),
+      });
+      const mpData = await mpRes.json();
+      mostrarLoading(false);
+      if (!mpRes.ok) throw new Error(mpData.erro || 'Erro ao gerar link de pagamento.');
+      // Redireciona para o Mercado Pago
+      window.location.href = mpData.linkPagamento;
+      return;
+    }
+
+    // Se for Pix: mostra a tela de confirmação normalmente
     mostrarLoading(false);
     document.getElementById('pc-num-val').textContent = num;
     document.getElementById('pc-retirada-val').textContent =
@@ -886,7 +909,7 @@ document.getElementById('btn-confirmar-pedido').addEventListener('click', async 
   } catch(e) {
     mostrarLoading(false);
     const er = document.getElementById('pag-erro');
-    er.textContent = 'Erro ao registrar pedido. Tente novamente.';
+    er.textContent = e.message || 'Erro ao registrar pedido. Tente novamente.';
     er.style.display = 'block';
   }
 });
@@ -983,6 +1006,26 @@ document.getElementById('inp-cep').addEventListener('keydown',e=>{if(e.key==='En
 document.getElementById('btn-buscar-cep').addEventListener('click',buscarCEP);
 document.getElementById('cart-btn').addEventListener('click',abrirCarrinho);
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');}));
+
+// ══ RETORNO MERCADO PAGO ══
+(function verificarRetornoMP() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('pagamento');
+  const num    = params.get('pedido');
+  if (!status) return;
+  window.history.replaceState({}, '', '/'); // limpa a URL
+  if (status === 'sucesso') {
+    toast('✅ Pagamento aprovado! Pedido #' + num + ' confirmado.', 'ok');
+    // Atualiza status no Firebase para CONFIRMADO
+    if (num && auth.currentUser) {
+      db.ref('pedidos_cliente/' + auth.currentUser.uid + '/' + num).update({ status: 'CONFIRMADO' });
+    }
+  } else if (status === 'pendente') {
+    toast('⏳ Pagamento em análise. Você receberá uma confirmação por e-mail.', 'warn');
+  } else if (status === 'erro') {
+    toast('❌ Pagamento não concluído. Tente novamente.', 'err');
+  }
+})();
 
 // ══ INIT ══
 carregarProdutos();

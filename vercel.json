@@ -1,18 +1,30 @@
 {
   "version": 2,
   "name": "pegpao",
-  "builds": [{ "src": "**/*", "use": "@vercel/static" }],
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "**/*",        "use": "@vercel/static" }
+  ],
   "routes": [
-    { "src": "/painel",   "dest": "/painel/index.html" },
+    { "src": "/api/(.*)",    "dest": "/api/$1" },
+    { "src": "/painel",      "dest": "/painel/index.html" },
     { "src": "/painel/(.*)", "dest": "/painel/$1" },
-    { "src": "/(.*)",    "dest": "/$1" }
+    { "src": "/(.*)",        "dest": "/$1" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options",        "value": "DENY" }
+        { "key": "X-Frame-Options",        "value": "DENY"    }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "https://encomendas-pegpao.vercel.app" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
       ]
     },
     {
