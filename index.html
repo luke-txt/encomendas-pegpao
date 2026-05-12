@@ -470,9 +470,10 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:32px
         <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6;margin-bottom:12px">Após confirmar o pedido, realize o pagamento Pix para a chave acima e aguarde a confirmação.</div>
       </div>
       <div class="pag-panel" id="pag-link">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">
           <div style="font-size:32px;margin-bottom:8px">💳</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6">Após confirmar, você receberá um link de pagamento seguro por e-mail.</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Pague com cartão, Pix ou boleto</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">Ao confirmar, você será redirecionado para o Mercado Pago para concluir o pagamento com segurança.</div>
         </div>
       </div>
       <div id="pag-erro" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none"></div>
@@ -872,12 +873,8 @@ document.getElementById('btn-confirmar-pedido').addEventListener('click', async 
     criadoEm:Date.now()
   };
   try {
-    // Salva o pedido no Firebase
-    await db.ref('pedidos/'+padariaEscolhida.id+'/'+num).set(ped);
-    await db.ref('pedidos_cliente/'+currentUser.uid+'/'+num).set(ped);
-
-    // Se o cliente escolheu "Link de pagamento", gera o link do Mercado Pago
     if (pagAtivo === 'link') {
+      // Para link MP: gera o link PRIMEIRO, depois salva no Firebase e redireciona
       const mpRes = await fetch('/api/criar-pagamento', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -891,14 +888,18 @@ document.getElementById('btn-confirmar-pedido').addEventListener('click', async 
         }),
       });
       const mpData = await mpRes.json();
-      mostrarLoading(false);
       if (!mpRes.ok) throw new Error(mpData.erro || 'Erro ao gerar link de pagamento.');
-      // Redireciona para o Mercado Pago
+      // Salva no Firebase e redireciona
+      await db.ref('pedidos/'+padariaEscolhida.id+'/'+num).set(ped);
+      await db.ref('pedidos_cliente/'+currentUser.uid+'/'+num).set(ped);
+      mostrarLoading(false);
       window.location.href = mpData.linkPagamento;
       return;
     }
 
-    // Se for Pix: mostra a tela de confirmação normalmente
+    // Se for Pix: salva no Firebase e mostra confirmação
+    await db.ref('pedidos/'+padariaEscolhida.id+'/'+num).set(ped);
+    await db.ref('pedidos_cliente/'+currentUser.uid+'/'+num).set(ped);
     mostrarLoading(false);
     document.getElementById('pc-num-val').textContent = num;
     document.getElementById('pc-retirada-val').textContent =
