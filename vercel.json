@@ -2,35 +2,25 @@
   "version": 2,
   "name": "pegpao",
   "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "**/*",        "use": "@vercel/static" }
+    { "src": "api/criar-pagamento.js", "use": "@vercel/node" },
+    { "src": "index.html",             "use": "@vercel/static" },
+    { "src": "painel/**",              "use": "@vercel/static" },
+    { "src": "assets/**",              "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)",    "dest": "/api/$1" },
-    { "src": "/painel",      "dest": "/painel/index.html" },
-    { "src": "/painel/(.*)", "dest": "/painel/$1" },
-    { "src": "/(.*)",        "dest": "/$1" }
+    { "src": "/api/criar-pagamento",  "dest": "/api/criar-pagamento.js" },
+    { "src": "/painel",               "dest": "/painel/index.html" },
+    { "src": "/painel/(.*)",          "dest": "/painel/$1" },
+    { "src": "/assets/(.*)",          "dest": "/assets/$1" },
+    { "src": "/(.*)",                 "dest": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options",        "value": "DENY"    }
-      ]
-    },
-    {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "https://encomendas-pegpao.vercel.app" },
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-      ]
-    },
-    {
-      "source": "/painel/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
