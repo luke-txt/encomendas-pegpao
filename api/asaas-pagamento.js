@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ erro: 'Método não permitido.' });
   }
 
-  const { numeroPedido, total, clienteEmail, clienteNome, dataRetirada } = req.body;
+  const { numeroPedido, total, clienteEmail, clienteNome, clienteCpf, dataRetirada } = req.body;
 
   if (!numeroPedido || !total || !clienteEmail) {
     return res.status(400).json({ erro: 'Dados do pedido incompletos.' });
@@ -44,8 +44,14 @@ export default async function handler(req, res) {
     const buscaData = await buscaRes.json();
 
     if (buscaData.data?.length > 0) {
-      // Cliente já existe
+      // Cliente já existe — atualiza CPF se ainda não tiver
       customerId = buscaData.data[0].id;
+      if (clienteCpf && !buscaData.data[0].cpfCnpj) {
+        await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ cpfCnpj: clienteCpf }),
+        });
+      }
     } else {
       // Cria o cliente
       const criarRes = await fetch(`${ASAAS_BASE}/customers`, {
@@ -54,6 +60,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           name:  clienteNome  || clienteEmail.split('@')[0],
           email: clienteEmail,
+          cpfCnpj: clienteCpf || '',
           externalReference: 'pegpao-' + clienteEmail.replace(/[^a-z0-9]/gi, ''),
         }),
       });
