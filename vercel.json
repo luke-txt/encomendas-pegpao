@@ -2,31 +2,78 @@
   "version": 2,
   "name": "pegpao",
   "builds": [
-    { "src": "api/criar-pagamento.js", "use": "@vercel/node" },
-    { "src": "index.html",             "use": "@vercel/static" },
-    { "src": "painel/**",              "use": "@vercel/static" },
-    { "src": "assets/**",              "use": "@vercel/static" }
+    {
+      "src": "api/criar-pagamento.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/asaas-pagamento.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "painel/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/api/criar-pagamento",  "dest": "/api/criar-pagamento.js" },
-    { "src": "/painel",               "dest": "/painel/index.html" },
-    { "src": "/painel/(.*)",          "dest": "/painel/$1" },
-    { "src": "/assets/(.*)",          "dest": "/assets/$1" },
-    { "src": "/(.*)",                 "dest": "/index.html" }
+    {
+      "src": "/api/criar-pagamento",
+      "dest": "/api/criar-pagamento.js"
+    },
+    {
+      "src": "/api/asaas-pagamento",
+      "dest": "/api/asaas-pagamento.js"
+    },
+    {
+      "src": "/painel",
+      "dest": "/painel/index.html"
+    },
+    {
+      "src": "/painel/(.*)",
+      "dest": "/painel/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
