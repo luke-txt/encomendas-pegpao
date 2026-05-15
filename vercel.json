@@ -15,6 +15,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/criar-usuario.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "**/*.html",
       "use": "@vercel/static"
     },
@@ -43,6 +47,10 @@
     {
       "src": "/api/asaas-webhook",
       "dest": "/api/asaas-webhook.js"
+    },
+    {
+      "src": "/api/criar-usuario",
+      "dest": "/api/criar-usuario.js"
     },
     {
       "src": "/painel",
