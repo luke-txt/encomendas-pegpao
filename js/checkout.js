@@ -47,9 +47,9 @@ async function buscarCEP() {
     const lat = parseFloat(gd[0].lat), lng = parseFloat(gd[0].lon);
     padariaEscolhida = padariaMaisProxima(lat, lng);
 
-    document.getElementById('pr-nome').textContent     = padariaEscolhida.nome;
-    document.getElementById('pr-end').textContent      = padariaEscolhida.endereco;
-    document.getElementById('pr-dist').textContent     = `📍 ${padariaEscolhida._dist.toFixed(1)} km de ${data.localidade}/${data.uf}`;
+    document.getElementById('pr-nome').textContent    = padariaEscolhida.nome;
+    document.getElementById('pr-end').textContent     = padariaEscolhida.endereco;
+    document.getElementById('pr-dist').textContent    = `📍 ${padariaEscolhida._dist.toFixed(1)} km de ${data.localidade}/${data.uf}`;
     document.getElementById('pr-data-val').textContent = dataRetiranda();
     document.getElementById('cep-result').style.display = 'block';
     document.getElementById('cep-erro').style.display   = 'none';
@@ -68,9 +68,6 @@ function erroCep(msg) {
 
 // ── Eventos DOMContentLoaded ──────────────────
 document.addEventListener('DOMContentLoaded', () => {
-
-  // Verifica se cliente voltou de um pagamento Asaas
-  verificarRetornoPagamento();
 
   // CEP mask
   document.getElementById('inp-cep')?.addEventListener('input', function() {
@@ -157,6 +154,7 @@ function preencherResumo() {
 
   document.getElementById('resumo-total').textContent = fmtPreco(total);
 
+  // Renderiza área de pagamento — apenas informativo, sem abas
   const container = document.getElementById('mp-brick-container');
   if (container) {
     container.innerHTML = `
@@ -220,19 +218,28 @@ async function confirmarPedido() {
     mostrarLoading(false);
 
     if (linkPagamento) {
+      // 3. Limpa carrinho
       carrinho = [];
       atualizarCarrinho();
+
+      // 4. E-mail de confirmação (opcional)
       enviarEmailPedido(pedido);
-      // Redireciona — ao voltar com ?pedido=XXX, verificarRetornoPagamento() atualiza o Firebase
+
+      // 5. Redireciona para o link de pagamento do Asaas
       window.location.href = linkPagamento;
+
     } else {
+      // Asaas falhou — mostra step de confirmação mesmo assim
+      // e salva o pedido como pendente para acompanhar no painel
       carrinho = [];
       atualizarCarrinho();
       enviarEmailPedido(pedido);
+
       document.getElementById('pc-num-val').textContent      = num;
       document.getElementById('pc-retirada-val').textContent =
         dataRetiranda() + '\n📍 ' + padariaEscolhida.nome;
       irStep('step-confirmado');
+
       toast('⚠️ Pedido salvo! O link de pagamento será enviado por e-mail.');
     }
 
@@ -258,16 +265,22 @@ async function gerarLinkAsaas(pedido) {
         clienteEmail: pedido.clienteEmail,
         clienteNome:  pedido.clienteNome,
         dataRetirada: pedido.dataRetirada,
+        // clienteCpf: pedido.clienteCpf || '',  // descomente se coletar CPF no cadastro
       }),
     });
 
     const data = await res.json();
-    if (!res.ok) { console.error('[Asaas] Erro na API:', data); return null; }
 
+    if (!res.ok) {
+      console.error('[Asaas] Erro na API:', data);
+      return null;
+    }
+
+    // Salva o ID da cobrança no Firebase para rastrear webhook
     await db.ref('pedidos/' + pedido.padaria + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
     await db.ref('pedidos_cliente/' + pedido.clienteUid + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
 
-    return data.linkPagamento;
+    return data.linkPagamento; // invoiceUrl do Asaas
 
   } catch(e) {
     console.error('[gerarLinkAsaas] Exception:', e);
@@ -275,71 +288,17 @@ async function gerarLinkAsaas(pedido) {
   }
 }
 
-// ── Verifica retorno do pagamento Asaas ───────
-async function verificarRetornoPagamento() {
-  const params       = new URLSearchParams(window.location.search);
-  const numeroPedido = params.get('pedido');
-  if (!numeroPedido) return;
-
-  // Limpa a URL sem recarregar
-  window.history.replaceState({}, '', window.location.pathname);
-
-  console.log('[Checkout] Verificando pagamento para pedido:', numeroPedido);
-
-  try {
-    const res  = await fetch(`/api/asaas-status?numeroPedido=${numeroPedido}`);
-    const data = await res.json();
-
-    if (!res.ok) { console.warn('[Checkout] Erro ao consultar status:', data); return; }
-
-    console.log('[Checkout] Status Asaas:', data.status, '| Pago:', data.pago);
-
-    if (data.pago) {
-      await confirmarPagamentoFirebase(numeroPedido);
-      toast('✅ Pagamento confirmado! Seu pedido está em preparo.');
-    } else {
-      toast('⏳ Pagamento pendente. Você será notificado assim que confirmado.', 'warn');
-    }
-
-  } catch(e) {
-    console.error('[verificarRetornoPagamento]', e);
-  }
-}
-
-// ── Atualiza Firebase após pagamento confirmado ──
-async function confirmarPagamentoFirebase(numeroPedido) {
-  try {
-    if (!currentUser) return;
-
-    const snap   = await db.ref('pedidos_cliente/' + currentUser.uid + '/' + numeroPedido).once('value');
-    const pedido = snap.val();
-    if (!pedido) { console.warn('[Firebase] Pedido não encontrado:', numeroPedido); return; }
-
-    const updates = {};
-    updates[`pedidos_cliente/${currentUser.uid}/${numeroPedido}/status`]               = 'CONFIRMADO';
-    updates[`pedidos_cliente/${currentUser.uid}/${numeroPedido}/pagamentoConfirmadoEm`] = Date.now();
-    updates[`pedidos/${pedido.padaria}/${numeroPedido}/status`]                         = 'CONFIRMADO';
-    updates[`pedidos/${pedido.padaria}/${numeroPedido}/pagamentoConfirmadoEm`]           = Date.now();
-
-    await db.ref().update(updates);
-    console.log('[Firebase] Pedido', numeroPedido, 'atualizado para CONFIRMADO');
-
-  } catch(e) {
-    console.error('[confirmarPagamentoFirebase]', e);
-  }
-}
-
 // ── E-mail ────────────────────────────────────
 function enviarEmailPedido(pedido) {
   // Configure no emailjs.com e descomente:
   // emailjs.send('SERVICE_ID', 'TEMPLATE_PEDIDO', {
-  //   to_email:      pedido.clienteEmail,
-  //   to_name:       pedido.clienteNome,
-  //   pedido_num:    pedido.num,
-  //   padaria:       pedido.padariaNome,
+  //   to_email:     pedido.clienteEmail,
+  //   to_name:      pedido.clienteNome,
+  //   pedido_num:   pedido.num,
+  //   padaria:      pedido.padariaNome,
   //   data_retirada: fmtData(pedido.dataRetirada),
-  //   total:         fmtPreco(pedido.total),
-  //   itens:         pedido.itens.map(i => `${i.qty}x ${i.nome}${i.sabor ? ' (' + i.sabor + ')' : ''}`).join(', ')
+  //   total:        fmtPreco(pedido.total),
+  //   itens:        pedido.itens.map(i => `${i.qty}x ${i.nome}${i.sabor ? ' (' + i.sabor + ')' : ''}`).join(', ')
   // }, 'PUBLIC_KEY');
   console.log('[Email] Pedido', pedido.num, '→', pedido.clienteEmail);
 }
