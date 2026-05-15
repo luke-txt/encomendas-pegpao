@@ -5,13 +5,14 @@
 // ══════════════════════════════════════════════
 
 const firebaseConfig = {
-  apiKey:            "COLE_AQUI",
-  authDomain:        "COLE_AQUI.firebaseapp.com",
-  databaseURL:       "https://COLE_AQUI-default-rtdb.firebaseio.com",
-  projectId:         "COLE_AQUI",
-  storageBucket:     "COLE_AQUI.appspot.com",
-  messagingSenderId: "COLE_AQUI",
-  appId:             "COLE_AQUI"
+  apiKey: "AIzaSyAe7UdbQ983NJ7bIz2RV2QZl6QKsTLTSyI",
+  authDomain: "encomendas-pegpao.firebaseapp.com",
+  databaseURL: "https://encomendas-pegpao-default-rtdb.firebaseio.com",
+  projectId: "encomendas-pegpao",
+  storageBucket: "encomendas-pegpao.firebasestorage.app",
+  messagingSenderId: "691406886346",
+  appId: "1:691406886346:web:c5501f45cfb62ed75dab33",
+  measurementId: "G-MQB8KT9DT0"
 };
 
 firebase.initializeApp(firebaseConfig);
