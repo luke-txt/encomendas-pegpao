@@ -1,10 +1,9 @@
 // ══════════════════════════════════════════════
 // checkout.js — Fluxo CEP → Auth → Pagamento
-// Mercado Pago: Pix + Cartão Crédito + Débito
+// Asaas: link de pagamento único (sem abas)
 // ══════════════════════════════════════════════
 
 let padariaEscolhida = null;
-let pagAtivo = 'pix';
 
 // ── Iniciar checkout ──────────────────────────
 function iniciarCheckout() {
@@ -48,10 +47,9 @@ async function buscarCEP() {
     const lat = parseFloat(gd[0].lat), lng = parseFloat(gd[0].lon);
     padariaEscolhida = padariaMaisProxima(lat, lng);
 
-    // Exibe resultado
-    document.getElementById('pr-nome').textContent = padariaEscolhida.nome;
-    document.getElementById('pr-end').textContent  = padariaEscolhida.endereco;
-    document.getElementById('pr-dist').textContent = `📍 ${padariaEscolhida._dist.toFixed(1)} km de ${data.localidade}/${data.uf}`;
+    document.getElementById('pr-nome').textContent    = padariaEscolhida.nome;
+    document.getElementById('pr-end').textContent     = padariaEscolhida.endereco;
+    document.getElementById('pr-dist').textContent    = `📍 ${padariaEscolhida._dist.toFixed(1)} km de ${data.localidade}/${data.uf}`;
     document.getElementById('pr-data-val').textContent = dataRetiranda();
     document.getElementById('cep-result').style.display = 'block';
     document.getElementById('cep-erro').style.display   = 'none';
@@ -68,7 +66,7 @@ function erroCep(msg) {
   document.getElementById('cep-result').style.display = 'none';
 }
 
-// ── Confirmar padaria → próximo passo ─────────
+// ── Eventos DOMContentLoaded ──────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
   // CEP mask
@@ -156,89 +154,37 @@ function preencherResumo() {
 
   document.getElementById('resumo-total').textContent = fmtPreco(total);
 
-  // Mercado Pago: inicia brick de pagamento
-  iniciarMercadoPago(total);
-}
-
-// ── Mercado Pago ──────────────────────────────
-async function iniciarMercadoPago(total) {
+  // Renderiza área de pagamento — apenas informativo, sem abas
   const container = document.getElementById('mp-brick-container');
-  if (!container) return;
-  container.innerHTML = '<div class="mp-loading">Carregando opções de pagamento...</div>';
-
-  // Verifica se o SDK foi carregado
-  if (typeof MercadoPago === 'undefined') {
+  if (container) {
     container.innerHTML = `
-      <div class="mp-fallback">
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">
-          Pagamento online temporariamente indisponível.<br>
-          Use a chave Pix abaixo.
-        </p>
-        ${renderPixManual()}
+      <div style="
+        background: var(--bg2, #f5f5f5);
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        color: var(--muted, #666);
+        font-size: 13px;
+        line-height: 1.6;
+      ">
+        <div style="font-size: 28px; margin-bottom: 8px;">🔒</div>
+        <strong style="color: var(--text, #333); font-size: 14px;">Pagamento seguro via Asaas</strong><br>
+        Pix, cartão de crédito ou boleto.<br>
+        Você será redirecionado ao clicar em <strong>Confirmar Pedido</strong>.
       </div>`;
-    return;
-  }
-
-  try {
-    const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
-
-    // Cria preferência de pagamento via Firebase Function ou backend
-    // Por enquanto mostra as opções manualmente
-    container.innerHTML = `
-      <div class="mp-tabs">
-        <button class="mp-tab active" onclick="switchPagTab('pix')">🟢 Pix</button>
-        <button class="mp-tab" onclick="switchPagTab('credito')">💳 Crédito</button>
-        <button class="mp-tab" onclick="switchPagTab('debito')">🏦 Débito</button>
-      </div>
-      <div class="mp-panel active" id="mp-pix">
-        ${renderPixManual()}
-      </div>
-      <div class="mp-panel" id="mp-credito">
-        <div class="mp-link-box">
-          <div class="mp-link-ico">💳</div>
-          <p class="mp-link-txt">Após confirmar o pedido, você receberá um <b>link de pagamento</b> por e-mail para pagar com cartão de crédito em até 12x.</p>
-        </div>
-      </div>
-      <div class="mp-panel" id="mp-debito">
-        <div class="mp-link-box">
-          <div class="mp-link-ico">🏦</div>
-          <p class="mp-link-txt">Após confirmar, você receberá um <b>link de pagamento</b> por e-mail para pagar com cartão de débito.</p>
-        </div>
-      </div>`;
-
-    pagAtivo = 'pix';
-
-  } catch(e) {
-    container.innerHTML = renderPixManual();
   }
 }
 
-function renderPixManual() {
-  return `
-    <div class="pix-chave">
-      <div class="pix-chave-val" id="pix-chave-val">${PIX_CHAVE}</div>
-      <button class="pix-copy" onclick="copiarPix()">Copiar</button>
-    </div>
-    <p class="pix-info">Após confirmar o pedido, realize o Pix para a chave acima e aguarde a confirmação por e-mail.</p>`;
-}
-
-function switchPagTab(tab) {
-  pagAtivo = tab;
-  document.querySelectorAll('.mp-tab').forEach((t, i) =>
-    t.classList.toggle('active', ['pix','credito','debito'][i] === tab));
-  document.querySelectorAll('.mp-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('mp-' + tab)?.classList.add('active');
-}
-
-function copiarPix() {
-  navigator.clipboard.writeText(PIX_CHAVE).then(() => toast('✅ Chave Pix copiada!'));
-}
-
-// ── Confirmar pedido ──────────────────────────
+// ── Confirmar pedido → salva no Firebase → chama Asaas → redireciona ──
 async function confirmarPedido() {
   if (!currentUser || !padariaEscolhida) return;
 
+  const btnConfirmar = document.getElementById('btn-confirmar-pedido');
+  if (btnConfirmar) { btnConfirmar.disabled = true; btnConfirmar.textContent = 'Processando...'; }
+
   mostrarLoading(true);
+
   const total = carrinho.reduce((s, i) => s + i.preco * i.qty, 0);
   const num   = 'PEG' + Date.now().toString().slice(-6);
 
@@ -255,65 +201,104 @@ async function confirmarPedido() {
       sabor: i.sabor || ''
     })),
     total,
-    pagamento:    pagAtivo,
+    pagamento:    'asaas',
     status:       'PENDENTE',
     dataRetirada: dataRetiradaISO(),
     criadoEm:     Date.now()
   };
 
   try {
+    // 1. Salva pedido no Firebase
     await db.ref('pedidos/' + padariaEscolhida.id + '/' + num).set(pedido);
     await db.ref('pedidos_cliente/' + currentUser.uid + '/' + num).set(pedido);
 
+    // 2. Gera link de pagamento no Asaas
+    const linkPagamento = await gerarLinkAsaas(pedido);
+
     mostrarLoading(false);
 
-    // Confirmação
-    document.getElementById('pc-num-val').textContent     = num;
-    document.getElementById('pc-retirada-val').textContent =
-      dataRetiranda() + '\n📍 ' + padariaEscolhida.nome;
+    if (linkPagamento) {
+      // 3. Limpa carrinho
+      carrinho = [];
+      atualizarCarrinho();
 
-    irStep('step-confirmado');
+      // 4. E-mail de confirmação (opcional)
+      enviarEmailPedido(pedido);
 
-    // Limpa carrinho
-    carrinho = [];
-    atualizarCarrinho();
+      // 5. Redireciona para o link de pagamento do Asaas
+      window.location.href = linkPagamento;
 
-    // Se crédito/débito → gera link MP
-    if (pagAtivo !== 'pix') gerarLinkPagamento(pedido);
+    } else {
+      // Asaas falhou — mostra step de confirmação mesmo assim
+      // e salva o pedido como pendente para acompanhar no painel
+      carrinho = [];
+      atualizarCarrinho();
+      enviarEmailPedido(pedido);
 
-    // E-mail confirmação
-    enviarEmailPedido(pedido);
+      document.getElementById('pc-num-val').textContent      = num;
+      document.getElementById('pc-retirada-val').textContent =
+        dataRetiranda() + '\n📍 ' + padariaEscolhida.nome;
+      irStep('step-confirmado');
+
+      toast('⚠️ Pedido salvo! O link de pagamento será enviado por e-mail.');
+    }
 
   } catch(e) {
+    console.error('[confirmarPedido]', e);
     mostrarLoading(false);
     const er = document.getElementById('pag-erro');
     if (er) { er.textContent = 'Erro ao registrar pedido. Tente novamente.'; er.style.display = 'block'; }
+  } finally {
+    if (btnConfirmar) { btnConfirmar.disabled = false; btnConfirmar.textContent = 'Confirmar Pedido'; }
   }
 }
 
-// ── Link de pagamento Mercado Pago ────────────
-async function gerarLinkPagamento(pedido) {
-  // Para gerar links do Mercado Pago você precisa de um backend/Firebase Function
-  // que chame a API do MP com suas credenciais privadas.
-  // O link é então enviado por e-mail ao cliente.
-  // Documentação: https://www.mercadopago.com.br/developers/pt/docs/checkout-pro
-  console.log('[MP] Gerar link de pagamento para pedido:', pedido.num, '- Total:', fmtPreco(pedido.total));
-  // Exemplo de como seria com um backend:
-  // const res = await fetch('/api/criar-pagamento', { method:'POST', body: JSON.stringify(pedido) });
-  // const { link } = await res.json();
-  // window.open(link); // ou envia por e-mail
+// ── Gera link Asaas via /api/asaas-pagamento ──
+async function gerarLinkAsaas(pedido) {
+  try {
+    const res = await fetch('/api/asaas-pagamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        numeroPedido: pedido.num,
+        total:        pedido.total,
+        clienteEmail: pedido.clienteEmail,
+        clienteNome:  pedido.clienteNome,
+        dataRetirada: pedido.dataRetirada,
+        // clienteCpf: pedido.clienteCpf || '',  // descomente se coletar CPF no cadastro
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('[Asaas] Erro na API:', data);
+      return null;
+    }
+
+    // Salva o ID da cobrança no Firebase para rastrear webhook
+    await db.ref('pedidos/' + pedido.padaria + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
+    await db.ref('pedidos_cliente/' + pedido.clienteUid + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
+
+    return data.linkPagamento; // invoiceUrl do Asaas
+
+  } catch(e) {
+    console.error('[gerarLinkAsaas] Exception:', e);
+    return null;
+  }
 }
 
 // ── E-mail ────────────────────────────────────
 function enviarEmailPedido(pedido) {
   // Configure no emailjs.com e descomente:
-  // emailjs.send('SERVICE_ID','TEMPLATE_PEDIDO',{
-  //   to_email: pedido.clienteEmail, to_name: pedido.clienteNome,
-  //   pedido_num: pedido.num, padaria: pedido.padariaNome,
+  // emailjs.send('SERVICE_ID', 'TEMPLATE_PEDIDO', {
+  //   to_email:     pedido.clienteEmail,
+  //   to_name:      pedido.clienteNome,
+  //   pedido_num:   pedido.num,
+  //   padaria:      pedido.padariaNome,
   //   data_retirada: fmtData(pedido.dataRetirada),
-  //   total: fmtPreco(pedido.total),
-  //   pagamento: pedido.pagamento,
-  //   itens: pedido.itens.map(i=>`${i.qty}x ${i.nome}${i.sabor?' ('+i.sabor+')':''}`).join(', ')
-  // },'PUBLIC_KEY');
+  //   total:        fmtPreco(pedido.total),
+  //   itens:        pedido.itens.map(i => `${i.qty}x ${i.nome}${i.sabor ? ' (' + i.sabor + ')' : ''}`).join(', ')
+  // }, 'PUBLIC_KEY');
   console.log('[Email] Pedido', pedido.num, '→', pedido.clienteEmail);
 }
