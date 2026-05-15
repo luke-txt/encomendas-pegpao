@@ -70,6 +70,7 @@
     <div class="dono-tab" data-tab="unidades">🏪 Unidades</div>
     <div class="dono-tab" data-tab="produtos">🎂 Produtos</div>
     <div class="dono-tab" data-tab="relatorio">📈 Relatórios</div>
+    <div class="dono-tab" data-tab="gerentes">👥 Gerentes</div>
   </div>
 
   <div class="dono-body">
@@ -130,6 +131,11 @@
         <div class="section-block-title">Produtos mais pedidos</div>
         <div id="rel-produtos"></div>
       </div>
+    </div>
+
+    <!-- GERENTES -->
+    <div class="dono-page" id="dp-gerentes">
+      <!-- conteúdo gerado por carregarGerentes() -->
     </div>
 
   </div>
@@ -323,6 +329,47 @@
       <button class="status-btn sb-pronto"     onclick="atualizarStatus('PRONTO')">🎉 Pronto!</button>
     </div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="fecharModal('modal-pedido')">Fechar</button>
+  </div>
+</div>
+
+
+<!-- MODAL GERENTE -->
+<div class="modal-bg" id="modal-gerente">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title" id="modal-gerente-titulo">👤 Novo gerente</div>
+      <div class="modal-close" onclick="fecharModal('modal-gerente')">✕</div>
+    </div>
+    <input type="hidden" id="ger-uid">
+    <div class="field"><label>Nome completo</label><input type="text" id="ger-nome" placeholder="Ex: João Silva"></div>
+    <div class="field"><label>Email</label><input type="email" id="ger-email" placeholder="joao@pegpao.com.br"></div>
+    <div class="field"><label>Senha <span style="color:var(--muted);font-weight:400">(mín. 6 caracteres)</span></label><input type="password" id="ger-senha" placeholder="••••••••"></div>
+    <div class="row-2">
+      <div class="field"><label>Nível de acesso</label>
+        <select id="ger-nivel">
+          <option value="OPERADOR">🟢 Operador</option>
+          <option value="GERENTE" selected>🟡 Gerente</option>
+          <option value="ADMIN">🔴 Admin</option>
+        </select>
+      </div>
+      <div class="field"><label>Padaria</label>
+        <select id="ger-padaria">
+          <option value="mongagua_1">🌊 Mongaguá 1</option>
+          <option value="mongagua_2">🌊 Mongaguá 2</option>
+          <option value="itanhaem_1">🏝️ Itanhaém 1</option>
+          <option value="itanhaem_2">🏝️ Itanhaém 2</option>
+          <option value="itanhaem_3">🏝️ Itanhaém 3</option>
+          <option value="peruibe_1">🐟 Peruíbe 1</option>
+          <option value="saovicente_1">⚓ São Vicente</option>
+        </select>
+      </div>
+    </div>
+    <div id="ger-erro" class="form-erro" style="display:none"></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="fecharModal('modal-gerente')">Cancelar</button>
+      <button class="btn btn-gold" style="flex:2" onclick="salvarGerente()">SALVAR GERENTE</button>
+    </div>
   </div>
 </div>
 
