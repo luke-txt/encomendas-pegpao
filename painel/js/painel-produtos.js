@@ -43,6 +43,7 @@ function prodAdminCardHTML(p) {
         <div class="pa-cat">${catLabel(p.cat)} ${p.destaque ? '⭐' : ''}</div>
         <div class="pa-meta">
           <span class="pa-preco">${fmtPreco(p.preco)}</span>
+          ${p.qtdMultiplo > 1 ? `<span class="pa-qtdmin">lote: ${p.qtdMultiplo} un.</span>` : ''}
           ${p.qtdMin > 1 ? `<span class="pa-qtdmin">mín. ${p.qtdMin}</span>` : ''}
           ${p.sabores?.length ? `<span class="pa-qtdmin">${p.sabores.length} sabores</span>` : ''}
         </div>
@@ -70,6 +71,7 @@ function abrirModalProduto(id) {
   document.getElementById('prod-ico').value       = '🎂';
   document.getElementById('prod-preco').value     = '';
   document.getElementById('prod-qtdmin').value    = '1';
+  document.getElementById('prod-qtdmultiplo').value = '1';
   document.getElementById('prod-desc').value      = '';
   document.getElementById('prod-imagem-url').value = '';
   document.getElementById('prod-ativo').checked   = true;
@@ -95,7 +97,8 @@ async function editarProduto(id) {
   document.getElementById('prod-cat').value        = v.cat  || 'bolos';
   document.getElementById('prod-ico').value        = v.ico  || '🎂';
   document.getElementById('prod-preco').value      = v.preco || '';
-  document.getElementById('prod-qtdmin').value     = v.qtdMin || 1;
+  document.getElementById('prod-qtdmin').value      = v.qtdMin || 1;
+  document.getElementById('prod-qtdmultiplo').value  = v.qtdMultiplo || 1;
   document.getElementById('prod-desc').value       = v.desc || '';
   document.getElementById('prod-imagem-url').value = v.imagem || '';
   document.getElementById('prod-ativo').checked    = v.ativo !== false;
@@ -225,6 +228,7 @@ async function salvarProduto() {
     ico:       document.getElementById('prod-ico').value || '🎂',
     preco,
     qtdMin,
+    qtdMultiplo: parseInt(document.getElementById('prod-qtdmultiplo').value) || 1,
     desc:      document.getElementById('prod-desc').value.trim(),
     ativo:     document.getElementById('prod-ativo').checked,
     destaque:  document.getElementById('prod-destaque').checked,

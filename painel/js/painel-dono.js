@@ -8,7 +8,7 @@ function mostrarDono() {
   esconderTudo();
   document.getElementById('dono-screen').style.display = 'flex';
   document.getElementById('dono-sub').textContent  = saudacao();
-  document.getElementById('dono-main').innerHTML   = `${saudacao()},<br><em>${currentUser.nome}!</em>`;
+  document.getElementById('dono-main').innerHTML   = `Painel <em>Geral</em>`;
   switchDonoTab('geral');
   carregarDonoGeral();
   renderRedeGrid();
