@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a0a06">
 <title>PegPão — Painel</title>
-<link rel="icon" href="../assets/logo.png" type="image/png">
-<link rel="apple-touch-icon" href="../assets/logo.png">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/painel.css">
+<link rel="stylesheet" href="/painel/css/painel.css">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -41,7 +41,7 @@
 <div id="login-screen" style="display:none">
   <div class="login-bg-decor"></div>
   <div class="login-box">
-    <div class="login-emblem"><img src="../assets/logo.png" alt="PegPão" onerror="this.outerHTML='🍞'"></div>
+    <div class="login-emblem"><img src="/assets/logo.png" alt="PegPão" onerror="this.outerHTML='🍞'"></div>
     <div class="login-brand">PegPão Painel</div>
     <div class="login-sub">Acesso restrito à equipe</div>
     <div class="field"><label>Email</label><input type="email" id="inp-email" placeholder="seu@email.com" autocomplete="email"></div>
@@ -54,7 +54,7 @@
 <!-- PAINEL DONO -->
 <div id="dono-screen" style="display:none">
   <div class="top-bar">
-    <div class="top-bar-emblem"><img src="../assets/logo.png" onerror="this.outerHTML='🍞'"></div>
+    <div class="top-bar-emblem"><img src="/assets/logo.png" onerror="this.outerHTML='🍞'"></div>
     <div class="top-bar-info">
       <div class="top-bar-name">Rede PegPão</div>
       <div class="top-bar-unit">Painel dos Donos</div>
@@ -138,7 +138,7 @@
 <!-- APP PADARIA -->
 <div id="app-screen" style="display:none">
   <div class="top-bar">
-    <div class="top-bar-emblem"><img src="../assets/logo.png" onerror="this.outerHTML='🍞'"></div>
+    <div class="top-bar-emblem"><img src="/assets/logo.png" onerror="this.outerHTML='🍞'"></div>
     <div class="top-bar-info">
       <div class="top-bar-name" id="app-padaria-name">—</div>
       <div class="top-bar-unit" id="app-user-name">—</div>
@@ -328,11 +328,11 @@
 <div class="loading-overlay" id="loading"><div class="loading-spinner"></div></div>
 <div id="toast"></div>
 
-<script src="js/painel-config.js"></script>
-<script src="js/painel-auth.js"></script>
-<script src="js/painel-produtos.js"></script>
-<script src="js/painel-pedidos.js"></script>
-<script src="js/painel-dono.js"></script>
-<script src="js/painel-main.js"></script>
+<script src="/painel/js/painel-config.js"></script>
+<script src="/painel/js/painel-auth.js"></script>
+<script src="/painel/js/painel-produtos.js"></script>
+<script src="/painel/js/painel-pedidos.js"></script>
+<script src="/painel/js/painel-dono.js"></script>
+<script src="/painel/js/painel-main.js"></script>
 </body>
 </html>
