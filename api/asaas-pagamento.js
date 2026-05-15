@@ -2,6 +2,13 @@
 //  PegPão — API serverless: Gerar link Asaas
 //  Caminho no projeto: /api/asaas-pagamento.js
 // ══════════════════════════════════════════════
+//
+//  Configure a variável de ambiente no Vercel:
+//  ASAAS_API_KEY = sua API key do Asaas
+//
+//  Para sandbox (testes): https://sandbox.asaas.com
+//  Para produção:         https://api.asaas.com
+// ══════════════════════════════════════════════
 
 const ASAAS_BASE = 'https://sandbox.asaas.com/api/v3'; // troque para https://api.asaas.com/v3 em produção
 
@@ -37,6 +44,7 @@ export default async function handler(req, res) {
     const buscaData = await buscaRes.json();
 
     if (buscaData.data?.length > 0) {
+      // Cliente já existe — atualiza CPF se ainda não tiver
       customerId = buscaData.data[0].id;
       if (clienteCpf && !buscaData.data[0].cpfCnpj) {
         await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
@@ -45,12 +53,13 @@ export default async function handler(req, res) {
         });
       }
     } else {
+      // Cria o cliente
       const criarRes = await fetch(`${ASAAS_BASE}/customers`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          name:     clienteNome || clienteEmail.split('@')[0],
-          email:    clienteEmail,
+          name:  clienteNome  || clienteEmail.split('@')[0],
+          email: clienteEmail,
           cpfCnpj: clienteCpf || '',
           externalReference: 'pegpao-' + clienteEmail.replace(/[^a-z0-9]/gi, ''),
         }),
@@ -66,28 +75,20 @@ export default async function handler(req, res) {
     // ── 2. Calcula data de vencimento (hoje + 1 dia) ──────────────────────
     const venc = new Date();
     venc.setDate(venc.getDate() + 1);
-    const dueDate = venc.toISOString().split('T')[0];
+    const dueDate = venc.toISOString().split('T')[0]; // ex: 2026-05-13
 
-    // ── 3. URL de retorno após pagamento ─────────────────────────────────
-    const BASE_URL = 'https://encomendas-pegpao.vercel.app';
-
-    // ── 4. Cria a cobrança ────────────────────────────────────────────────
+    // ── 3. Cria a cobrança ────────────────────────────────────────────────
     const cobRes = await fetch(`${ASAAS_BASE}/payments`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         customer:          customerId,
-        billingType:       'UNDEFINED',
+        billingType:       'UNDEFINED',    // cliente escolhe: Pix, boleto ou cartão
         value:             Number(total),
         dueDate,
         description:       `Pedido PegPão #${numeroPedido} — Retirada: ${dataRetirada}`,
         externalReference: numeroPedido,
         postalService:     false,
-        // Redireciona o cliente de volta ao site após o pagamento
-        callback: {
-          successUrl: `${BASE_URL}/?pedido=${numeroPedido}`,
-          autoRedirect: true,
-        },
       }),
     });
 
@@ -98,8 +99,9 @@ export default async function handler(req, res) {
       return res.status(cobRes.status).json({ erro: 'Erro ao criar cobrança no Asaas.', detalhe: cobData });
     }
 
+    // ── 4. Retorna o link de pagamento ────────────────────────────────────
     return res.status(200).json({
-      linkPagamento: cobData.invoiceUrl,
+      linkPagamento: cobData.invoiceUrl,  // link de pagamento do Asaas
       cobrancaId:    cobData.id,
       status:        cobData.status,
     });
