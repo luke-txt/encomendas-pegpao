@@ -23,6 +23,7 @@ function switchDonoTab(tab) {
 
   if (tab === 'produtos')  carregarProdutosAdmin();
   if (tab === 'relatorio') carregarRelatorio();
+  if (tab === 'gerentes')  carregarGerentes();
 }
 
 // ── Visão geral da rede ───────────────────────
@@ -210,4 +211,113 @@ async function carregarRelatorio() {
       </div>
       <div style="font-family:var(--ff-mono);font-size:13px;font-weight:500;color:var(--gold)">${d.qty}</div>
     </div>`).join('') || '<div class="empty-state">Sem dados</div>';
+}
+
+
+// ══ GERENTES ══════════════════════════════════
+
+async function carregarGerentes() {
+  const el = document.getElementById('dp-gerentes');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">👥 Gerentes das padarias</div>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalGerente(null)">+ Novo gerente</button>
+    </div>
+    <div id="lista-gerentes"><div class="empty-state">Carregando...</div></div>`;
+
+  const snap = await db.ref('painel_usuarios').once('value').catch(() => null);
+  const lista = document.getElementById('lista-gerentes');
+  if (!lista) return;
+
+  const users = [];
+  if (snap && snap.exists()) snap.forEach(c => { const v = c.val(); if (v && v.nivel !== 'DONO') users.push({ uid: c.key, ...v }); });
+
+  if (!users.length) { lista.innerHTML = '<div class="empty-state">Nenhum gerente cadastrado ainda.</div>'; return; }
+
+  lista.innerHTML = users.map(u => {
+    const pad = PADARIAS.find(p => p.id === u.padaria_id);
+    const nivelCls = { ADMIN:'amber', GERENTE:'gold', OPERADOR:'green' }[u.nivel] || 'muted';
+    return `
+      <div class="pedido-card" style="margin:0 0 10px">
+        <div class="ped-header">
+          <div class="ped-num">${u.nome || u.email}</div>
+          <div class="ped-status st-confirmado" style="color:var(--${nivelCls})">${u.nivel || '—'}</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin:4px 0">${u.email || ''}</div>
+        <div style="font-size:12px;color:var(--gold);margin-bottom:10px">📍 ${pad ? pad.ico + ' ' + pad.nome : u.padaria_id || 'Sem padaria'}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="abrirModalGerente('${u.uid}')">✏️ Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--${u.ativo!==false?'green':'red'})" onclick="toggleGerente('${u.uid}', ${u.ativo!==false})">${u.ativo!==false?'✅ Ativo':'⛔ Inativo'}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function abrirModalGerente(uid) {
+  document.getElementById('modal-gerente-titulo').textContent = uid ? '✏️ Editar gerente' : '👤 Novo gerente';
+  document.getElementById('ger-uid').value      = uid || '';
+  document.getElementById('ger-nome').value     = '';
+  document.getElementById('ger-email').value    = '';
+  document.getElementById('ger-senha').value    = '';
+  document.getElementById('ger-nivel').value    = 'GERENTE';
+  document.getElementById('ger-padaria').value  = PADARIAS[0]?.id || '';
+  document.getElementById('ger-erro').style.display = 'none';
+
+  if (uid) {
+    db.ref('painel_usuarios/' + uid).once('value').then(snap => {
+      const v = snap.val(); if (!v) return;
+      document.getElementById('ger-nome').value    = v.nome || '';
+      document.getElementById('ger-email').value   = v.email || '';
+      document.getElementById('ger-nivel').value   = v.nivel || 'GERENTE';
+      document.getElementById('ger-padaria').value = v.padaria_id || '';
+      document.getElementById('ger-senha').placeholder = 'Deixe em branco para não alterar';
+    });
+  }
+  abrirModal('modal-gerente');
+}
+
+async function salvarGerente() {
+  const uid     = document.getElementById('ger-uid').value;
+  const nome    = document.getElementById('ger-nome').value.trim();
+  const email   = document.getElementById('ger-email').value.trim().toLowerCase();
+  const senha   = document.getElementById('ger-senha').value;
+  const nivel   = document.getElementById('ger-nivel').value;
+  const padaria = document.getElementById('ger-padaria').value;
+  const erroEl  = document.getElementById('ger-erro');
+  erroEl.style.display = 'none';
+
+  if (!nome)    { erroEl.textContent='Informe o nome.'; erroEl.style.display='block'; return; }
+  if (!email)   { erroEl.textContent='Informe o email.'; erroEl.style.display='block'; return; }
+  if (!uid && senha.length < 6) { erroEl.textContent='Senha mínimo 6 caracteres.'; erroEl.style.display='block'; return; }
+
+  mostrarLoading(true);
+  try {
+    if (!uid) {
+      // Cria novo usuário via Firebase Auth
+      const res = await fetch('/api/criar-usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, senha, nivel, padaria_id: padaria })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.erro || 'Erro ao criar usuário.');
+    } else {
+      // Atualiza dados no Firebase
+      await db.ref('painel_usuarios/' + uid).update({ nome, nivel, padaria_id: padaria, email });
+    }
+    mostrarLoading(false);
+    toast('✅ Gerente salvo!');
+    fecharModal('modal-gerente');
+    carregarGerentes();
+  } catch(e) {
+    mostrarLoading(false);
+    erroEl.textContent = e.message; erroEl.style.display = 'block';
+  }
+}
+
+async function toggleGerente(uid, ativo) {
+  await db.ref('painel_usuarios/' + uid).update({ ativo: !ativo });
+  toast(ativo ? '⛔ Gerente desativado.' : '✅ Gerente ativado!', ativo ? 'warn' : 'ok');
+  carregarGerentes();
 }
