@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -8,15 +7,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a0a06">
-<title>PegPão — Painel</title>
-<link rel="icon" href="../assets/logo.png" type="image/png">
-<link rel="apple-touch-icon" href="../assets/logo.png">
+<meta name="description" content="Faça sua encomenda online na Rede de Padarias PegPão.">
+<title>PegPão — Encomendas</title>
+<link rel="icon" href="assets/logo.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/painel.css">
+<link rel="stylesheet" href="css/style.css">
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<!-- Mercado Pago SDK -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 <body>
 
@@ -27,312 +29,336 @@
   <div class="splash-ring splash-ring-3"></div>
   <div class="splash-oven-wrap">
     <div class="splash-oven">
-      <div class="splash-steam"><div class="steam-line"></div><div class="steam-line"></div><div class="steam-line"></div></div>
-      <div class="splash-oven-door"><div class="splash-oven-glow"></div><div class="splash-bread-emoji">🍞</div><div class="splash-oven-handle"></div></div>
+      <div class="splash-steam">
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+      </div>
+      <div class="splash-oven-door">
+        <div class="splash-oven-glow"></div>
+        <div class="splash-bread-emoji">🍞</div>
+        <div class="splash-oven-handle"></div>
+      </div>
     </div>
-    <div class="splash-oven-legs"><div class="splash-oven-leg"></div><div class="splash-oven-leg"></div></div>
+    <div class="splash-oven-legs">
+      <div class="splash-oven-leg"></div>
+      <div class="splash-oven-leg"></div>
+    </div>
   </div>
   <div class="splash-name">PegPão</div>
-  <div class="splash-tagline">Painel Interno</div>
+  <div class="splash-tagline">Encomendas Online</div>
   <div class="splash-loader"><div class="splash-loader-bar"></div></div>
 </div>
 
-<!-- LOGIN -->
-<div id="login-screen" style="display:none">
-  <div class="login-bg-decor"></div>
-  <div class="login-box">
-    <div class="login-emblem"><img src="../assets/logo.png" alt="PegPão" onerror="this.outerHTML='🍞'"></div>
-    <div class="login-brand">PegPão Painel</div>
-    <div class="login-sub">Acesso restrito à equipe</div>
-    <div class="field"><label>Email</label><input type="email" id="inp-email" placeholder="seu@email.com" autocomplete="email"></div>
-    <div class="field"><label>Senha</label><input type="password" id="inp-pass" placeholder="••••••••"></div>
-    <button class="btn btn-primary" id="btn-login">ENTRAR</button>
-    <div id="login-error" class="form-erro" style="display:none"></div>
-  </div>
-</div>
-
-<!-- PAINEL DONO -->
-<div id="dono-screen" style="display:none">
-  <div class="top-bar">
-    <div class="top-bar-emblem"><img src="../assets/logo.png" onerror="this.outerHTML='🍞'"></div>
-    <div class="top-bar-info">
-      <div class="top-bar-name">Rede PegPão</div>
-      <div class="top-bar-unit">Painel dos Donos</div>
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+      <div class="header-emblem">
+        <img src="assets/logo.png" alt="PegPão" onerror="this.outerHTML='🍞'">
+      </div>
+      <div>
+        <div class="header-brand">PegPão</div>
+        <div class="header-sub">Encomendas</div>
+      </div>
     </div>
-    <div class="top-bar-pill">👑 Dono</div>
-    <button class="btn-icon" id="dono-logout-btn" title="Sair">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <div class="header-actions">
+      <div id="header-auth-area">
+        <button class="btn-header-login" onclick="abrirModal('modal-auth')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Entrar
+        </button>
+      </div>
+      <div class="cart-btn" id="cart-btn">
+        🛒
+        <div class="cart-count" id="cart-count">0</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" id="inicio">
+    <div class="hero-bg"></div>
+    <div class="hero-tag">🍞 Rede PegPão</div>
+    <h1 class="hero-title">Encomende com<br><em>sabor e praticidade</em></h1>
+    <p class="hero-sub">Bolos, salgados, docinhos e muito mais. Escolha, encomende e retire na padaria mais próxima em até 3 dias.</p>
+    <button class="hero-cta" onclick="document.getElementById('cardapio').scrollIntoView({behavior:'smooth'})">
+      Ver cardápio completo
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
     </button>
+    <div class="hero-badges">
+      <span class="hero-badge">Retirada em 3 dias</span>
+      <span class="hero-badge">7 unidades disponíveis</span>
+      <span class="hero-badge">Pix, crédito ou débito</span>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="como-section">
+    <div class="como-grid">
+      <div class="como-card"><div class="como-n">01</div><div class="como-ico">🛒</div><div class="como-title">Escolha</div><div class="como-desc">Monte seu pedido com os produtos do cardápio</div></div>
+      <div class="como-card"><div class="como-n">02</div><div class="como-ico">📍</div><div class="como-title">Localização</div><div class="como-desc">Informe seu CEP e encontramos a padaria mais próxima</div></div>
+      <div class="como-card"><div class="como-n">03</div><div class="como-ico">💳</div><div class="como-title">Pagamento</div><div class="como-desc">Pague via Pix, cartão de crédito ou débito</div></div>
+      <div class="como-card"><div class="como-n">04</div><div class="como-ico">🎉</div><div class="como-title">Retirada</div><div class="como-desc">Em até 3 dias seu pedido estará pronto para retirar</div></div>
+    </div>
+  </section>
+
+  <!-- CARDÁPIO -->
+  <section class="cardapio-section" id="cardapio">
+    <div class="section-tag">Cardápio</div>
+    <h2 class="section-title">Nossas <em>especialidades</em></h2>
+    <div class="cat-filter" id="cat-filter">
+      <button class="cat-btn active" data-cat="todos">Todos</button>
+      <button class="cat-btn" data-cat="bolos">🎂 Bolos</button>
+      <button class="cat-btn" data-cat="bolos-confeitados">✨ Confeitados</button>
+      <button class="cat-btn" data-cat="baguetes">🥖 Baguetes</button>
+      <button class="cat-btn" data-cat="docinhos">🍬 Docinhos</button>
+      <button class="cat-btn" data-cat="salgados">🥟 Salgados</button>
+      <button class="cat-btn" data-cat="assados">🥘 Assados</button>
+    </div>
+    <div class="produtos-grid" id="produtos-grid">
+      <div class="empty-cat">Carregando cardápio...</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-logo">Rede PegPão</div>
+  <div class="footer-sub">Padaria Restaurante & Pizzaria</div>
+  <div class="footer-links">
+    <span class="footer-link" onclick="abrirMeusPedidos()">Meus Pedidos</span>
+    <span class="footer-link">Sobre nós</span>
   </div>
+</footer>
 
-  <div class="dono-tabs-bar">
-    <div class="dono-tab active" data-tab="geral">📊 Visão Geral</div>
-    <div class="dono-tab" data-tab="unidades">🏪 Unidades</div>
-    <div class="dono-tab" data-tab="produtos">🎂 Produtos</div>
-    <div class="dono-tab" data-tab="relatorio">📈 Relatórios</div>
+<!-- CARRINHO DRAWER -->
+<div class="drawer-bg" id="drawer-bg"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <div class="cart-title">🛒 Seu pedido</div>
+    <div class="cart-close" onclick="fecharCarrinho()">✕</div>
   </div>
-
-  <div class="dono-body">
-
-    <!-- GERAL -->
-    <div class="dono-page active" id="dp-geral">
-      <div class="dash-greeting">
-        <div class="greeting-sub" id="dono-sub">Bom dia</div>
-        <div class="greeting-main" id="dono-main">Carregando...</div>
-        <div class="greeting-detail">Visão consolidada da rede</div>
-      </div>
-      <div class="metrics-grid" id="dono-metrics"></div>
-      <div class="section-block">
-        <div class="section-block-title">🚨 Pedidos pendentes na rede</div>
-        <div id="dono-pendentes"><div class="empty-state">Carregando...</div></div>
-      </div>
-      <div class="section-block">
-        <div class="section-block-title">📋 Pedidos com retirada hoje</div>
-        <div id="dono-hoje"><div class="empty-state">Carregando...</div></div>
-      </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">
+      <div class="cart-empty-ico">🛒</div>
+      <div class="cart-empty-title">Carrinho vazio</div>
+      <div class="cart-empty-sub">Adicione produtos do cardápio</div>
     </div>
-
-    <!-- UNIDADES -->
-    <div class="dono-page" id="dp-unidades">
-      <div class="dash-greeting">
-        <div class="greeting-main" style="font-size:22px">Selecione a <em>unidade</em></div>
-      </div>
-      <div class="rede-grid" id="rede-grid"></div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <div class="cart-total-label">Total</div>
+      <div class="cart-total-val" id="cart-total">R$ 0,00</div>
     </div>
-
-    <!-- PRODUTOS -->
-    <div class="dono-page" id="dp-produtos">
-      <div class="page-header">
-        <div class="page-title">🎂 Produtos do cardápio</div>
-        <button class="btn btn-primary btn-sm" onclick="abrirModalProduto(null)">+ Novo produto</button>
-      </div>
-      <div class="cat-filter-admin" id="prod-cat-filter">
-        <button class="cat-btn-admin active" data-pcat="todos">Todos</button>
-        <button class="cat-btn-admin" data-pcat="bolos">🎂 Bolos</button>
-        <button class="cat-btn-admin" data-pcat="bolos-confeitados">✨ Confeitados</button>
-        <button class="cat-btn-admin" data-pcat="baguetes">🥖 Baguetes</button>
-        <button class="cat-btn-admin" data-pcat="docinhos">🍬 Docinhos</button>
-        <button class="cat-btn-admin" data-pcat="salgados">🥟 Salgados</button>
-        <button class="cat-btn-admin" data-pcat="assados">🥘 Assados</button>
-      </div>
-      <div id="lista-produtos-admin"><div class="empty-state">Carregando...</div></div>
-    </div>
-
-    <!-- RELATÓRIO -->
-    <div class="dono-page" id="dp-relatorio">
-      <div class="page-header"><div class="page-title">📈 Relatórios</div></div>
-      <div class="metrics-grid" id="rel-metrics"></div>
-      <div class="section-block">
-        <div class="section-block-title">Pedidos por padaria</div>
-        <div id="rel-por-padaria"></div>
-      </div>
-      <div class="section-block">
-        <div class="section-block-title">Produtos mais pedidos</div>
-        <div id="rel-produtos"></div>
-      </div>
-    </div>
-
+    <button class="btn-checkout" id="btn-checkout" onclick="iniciarCheckout()" disabled>Finalizar pedido →</button>
   </div>
 </div>
 
-<!-- APP PADARIA -->
-<div id="app-screen" style="display:none">
-  <div class="top-bar">
-    <div class="top-bar-emblem"><img src="../assets/logo.png" onerror="this.outerHTML='🍞'"></div>
-    <div class="top-bar-info">
-      <div class="top-bar-name" id="app-padaria-name">—</div>
-      <div class="top-bar-unit" id="app-user-name">—</div>
-    </div>
-    <div class="top-bar-pill" id="app-nivel-pill"></div>
-    <button class="btn-icon" id="btn-app-voltar">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </button>
-  </div>
-
-  <div class="app-body">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="dash-greeting">
-        <div class="greeting-sub" id="dash-sub">Bom dia</div>
-        <div class="greeting-main" id="dash-main">Olá!</div>
-        <div class="greeting-detail" id="dash-detail"></div>
-      </div>
-      <div class="metrics-grid" id="dash-metrics"></div>
-      <div class="section-block">
-        <div class="section-block-title">🔥 Ação imediata</div>
-        <div id="dash-atencao"></div>
-      </div>
-      <div class="section-block">
-        <div class="section-block-title">📋 Pedidos de hoje</div>
-        <div id="dash-hoje"></div>
-      </div>
-    </div>
-
-    <!-- PEDIDOS -->
-    <div id="page-pedidos" class="page">
-      <div class="page-header">
-        <div class="page-title">📦 Pedidos</div>
-      </div>
-      <div class="filter-scroll" id="filter-pedidos">
-        <button class="filter-btn active" data-filter="todos">Todos</button>
-        <button class="filter-btn" data-filter="PENDENTE">🕐 Pendentes</button>
-        <button class="filter-btn" data-filter="CONFIRMADO">✅ Confirmados</button>
-        <button class="filter-btn" data-filter="PREPARO">👨‍🍳 Em preparo</button>
-        <button class="filter-btn" data-filter="PRONTO">🎉 Prontos</button>
-      </div>
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="busca-pedido" placeholder="Buscar por número ou cliente...">
-      </div>
-      <div id="lista-pedidos"><div class="empty-state">Carregando...</div></div>
-    </div>
-
-  </div>
-
-  <!-- NAV BOTTOM -->
-  <nav class="nav-bottom">
-    <div class="nav-btn active" data-tab="dashboard">
-      <div class="nav-ico">🏠</div>
-      <div class="nav-lbl">Início</div>
-    </div>
-    <div class="nav-btn" data-tab="pedidos">
-      <div class="nav-ico">📦<span class="nav-badge" id="nav-badge"></span></div>
-      <div class="nav-lbl">Pedidos</div>
-    </div>
-    <div class="nav-btn" id="nav-mais-btn">
-      <div class="nav-ico">☰</div>
-      <div class="nav-lbl">Mais</div>
-    </div>
-  </nav>
-
-  <!-- DRAWER MAIS -->
-  <div class="drawer-bg" id="drawer-bg"></div>
-  <div class="drawer" id="drawer-mais">
-    <div class="drawer-handle"></div>
-    <div class="drawer-title">Menu</div>
-    <div class="drawer-item" id="drawer-logout">
-      <span class="drawer-ico" style="color:var(--red)">⎋</span>
-      <span style="color:var(--red)">Sair</span>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL PRODUTO (completo) -->
-<div class="modal-bg" id="modal-produto">
+<!-- MODAL CHECKOUT -->
+<div class="modal-bg" id="modal-cep">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-head">
-      <div class="modal-title" id="modal-prod-title">🎂 Novo produto</div>
-      <div class="modal-close" onclick="fecharModal('modal-produto')">✕</div>
+      <div class="modal-title">📍 Finalizar pedido</div>
+      <div class="modal-close" onclick="fecharCheckout()">✕</div>
     </div>
 
-    <input type="hidden" id="prod-edit-id">
-
-    <!-- Upload de imagem -->
-    <div class="img-upload-area" id="img-upload-area" onclick="document.getElementById('prod-img-input').click()">
-      <div class="img-upload-preview" id="img-preview">
-        <div class="img-upload-placeholder">
-          <div style="font-size:32px;margin-bottom:8px">📷</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text2)">Adicionar foto</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">JPG, PNG até 2MB</div>
+    <!-- Step 1: CEP -->
+    <div class="cep-step active" id="step-cep">
+      <p class="step-intro">Informe seu CEP para encontrarmos a padaria mais próxima.</p>
+      <div class="field">
+        <label>CEP</label>
+        <div class="cep-input-wrap">
+          <input type="tel" id="inp-cep" placeholder="00000-000" maxlength="9" inputmode="numeric">
+          <button class="cep-search-btn" id="btn-buscar-cep">🔍</button>
         </div>
       </div>
-      <input type="file" id="prod-img-input" accept="image/*" style="display:none">
-    </div>
-    <div id="img-upload-progress" style="display:none">
-      <div class="upload-bar"><div class="upload-bar-fill" id="upload-bar-fill"></div></div>
-      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px" id="upload-pct">0%</div>
-    </div>
-    <input type="hidden" id="prod-imagem-url">
-
-    <div class="field"><label>Nome do produto</label><input type="text" id="prod-nome" placeholder="Ex: Bolo Confeitado M"></div>
-
-    <div class="row-2">
-      <div class="field"><label>Categoria</label>
-        <select id="prod-cat">
-          <option value="bolos">🎂 Bolos</option>
-          <option value="bolos-confeitados">✨ Confeitados</option>
-          <option value="baguetes">🥖 Baguetes</option>
-          <option value="docinhos">🍬 Docinhos de Festa</option>
-          <option value="salgados">🥟 Salgados de Festa</option>
-          <option value="assados">🥘 Assados de Festa</option>
-        </select>
+      <div id="cep-result" style="display:none">
+        <div class="padaria-result">
+          <div class="pr-label">📍 Padaria mais próxima</div>
+          <div class="pr-nome" id="pr-nome">—</div>
+          <div class="pr-end"  id="pr-end">—</div>
+          <div class="pr-dist" id="pr-dist">—</div>
+          <div class="pr-data">
+            <div>
+              <div class="pr-data-label">Retirada disponível em</div>
+              <div class="pr-data-val" id="pr-data-val">—</div>
+            </div>
+            <div class="pr-data-ico">📅</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px" id="btn-confirmar-padaria">Confirmar e continuar →</button>
       </div>
-      <div class="field"><label>Emoji</label><input type="text" id="prod-ico" placeholder="🎂" maxlength="4"></div>
+      <div id="cep-erro" class="form-erro" style="display:none"></div>
     </div>
 
-    <div class="row-2">
-      <div class="field"><label>Preço (R$)</label><input type="number" id="prod-preco" placeholder="0,00" min="0" step="0.01"></div>
-      <div class="field"><label>Qtd mínima</label><input type="number" id="prod-qtdmin" placeholder="1" min="1" step="1" value="1"></div>
+    <!-- Step 2: Auth -->
+    <div class="cep-step" id="step-auth">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchCoTab('login')">Já tenho conta</button>
+        <button class="auth-tab"        onclick="switchCoTab('cadastro')">Primeira vez</button>
+      </div>
+
+      <div class="auth-form active" id="co-form-login">
+        <button class="btn-google" id="btn-co-google">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6c1.8-5.4 6.8-9.8 13.5-9.8z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.2 5.6c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.7 0-12.3-4.5-14.3-10.6l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+          Entrar com Google
+        </button>
+        <div class="auth-ou"><span>ou</span></div>
+        <div class="field"><label>Email</label><input type="email" id="co-login-email" placeholder="seu@email.com" autocomplete="email"></div>
+        <div class="field"><label>Senha</label><input type="password" id="co-login-pass" placeholder="••••••••"></div>
+        <div id="co-login-erro" class="form-erro" style="display:none"></div>
+        <button class="btn btn-primary" id="btn-co-login">ENTRAR E CONTINUAR →</button>
+        <div class="auth-switch">Não tem conta? <span onclick="switchCoTab('cadastro')">Cadastre-se grátis</span></div>
+      </div>
+
+      <div class="auth-form" id="co-form-cadastro">
+        <button class="btn-google" id="btn-co-google-cad">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6c1.8-5.4 6.8-9.8 13.5-9.8z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.2 5.6c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.7 0-12.3-4.5-14.3-10.6l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+          Cadastrar com Google
+        </button>
+        <div class="auth-ou"><span>ou</span></div>
+        <div class="field"><label>Nome completo</label><input type="text" id="co-cad-nome" placeholder="Seu nome completo"></div>
+        <div class="row-2">
+          <div class="field"><label>Nascimento</label><input type="date" id="co-cad-nasc"></div>
+          <div class="field"><label>Email</label><input type="email" id="co-cad-email" placeholder="seu@email.com"></div>
+        </div>
+        <div class="field"><label>Senha</label><input type="password" id="co-cad-pass" placeholder="Mínimo 6 caracteres"></div>
+        <div class="field"><label>Confirmar senha</label><input type="password" id="co-cad-pass2" placeholder="Repita a senha"></div>
+        <div id="co-cad-erro" class="form-erro" style="display:none"></div>
+        <button class="btn btn-primary" id="btn-co-cadastro">CRIAR CONTA E CONTINUAR →</button>
+      </div>
     </div>
 
-    <div class="field"><label>Descrição</label><textarea id="prod-desc" rows="3" placeholder="Descreva o produto, tamanho, rendimento..."></textarea></div>
-
-    <!-- Sabores -->
-    <div class="field">
-      <label>Sabores disponíveis <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
-      <div class="sabores-wrap">
-        <div class="sabores-list" id="sabores-list"></div>
-        <div class="sabor-add-row">
-          <input type="text" id="sabor-input" placeholder="Ex: Chocolate" style="flex:1">
-          <button class="btn btn-ghost btn-sm" onclick="adicionarSabor()" style="width:auto">+ Adicionar</button>
+    <!-- Step 3: Pagamento -->
+    <div class="cep-step" id="step-pagamento">
+      <div class="resumo-box">
+        <div class="resumo-label">Resumo do pedido</div>
+        <div id="resumo-itens"></div>
+        <div class="resumo-total-row">
+          <span class="resumo-total-label">Total</span>
+          <span id="resumo-total" class="resumo-total-val"></span>
         </div>
       </div>
+      <div class="pag-section-label">Forma de pagamento</div>
+      <div id="mp-brick-container"></div>
+      <div id="pag-erro" class="form-erro" style="display:none"></div>
+      <button class="btn btn-gold" id="btn-confirmar-pedido" style="margin-top:14px">✓ CONFIRMAR PEDIDO</button>
     </div>
 
-    <div class="field toggle-field">
-      <span class="toggle-label">Produto ativo (visível no cardápio)</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="prod-ativo" checked>
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-
-    <div class="field toggle-field">
-      <span class="toggle-label">Destaque (aparece primeiro)</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="prod-destaque">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-
-    <div style="display:flex;gap:10px;margin-top:8px">
-      <button class="btn btn-ghost" style="flex:1" onclick="fecharModal('modal-produto')">Cancelar</button>
-      <button class="btn btn-gold"  style="flex:2" id="btn-salvar-produto">SALVAR PRODUTO</button>
+    <!-- Step 4: Confirmado -->
+    <div class="cep-step" id="step-confirmado">
+      <div class="pedido-confirm">
+        <div class="pc-ico">🎉</div>
+        <div class="pc-title">Pedido realizado!</div>
+        <div class="pc-sub">Seu pedido foi registrado com sucesso.<br>Você receberá uma confirmação por e-mail.</div>
+        <div class="pc-num">
+          <div class="pc-num-label">Número do pedido</div>
+          <div class="pc-num-val" id="pc-num-val">—</div>
+        </div>
+        <div class="pc-retirada">
+          <div class="pc-retirada-label">📅 Disponível para retirada</div>
+          <div class="pc-retirada-val" id="pc-retirada-val">—</div>
+        </div>
+        <div class="pc-actions">
+          <button class="btn btn-primary" onclick="abrirMeusPedidos()">Ver meus pedidos →</button>
+          <button class="btn btn-ghost"   onclick="fecharCheckout()">Fechar</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL PEDIDO DETALHE -->
-<div class="modal-bg" id="modal-pedido">
+<!-- MODAL AUTH -->
+<div class="modal-bg" id="modal-auth">
+  <div class="modal-box modal-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title">👤 Minha conta</div>
+      <div class="modal-close" onclick="fecharModal('modal-auth')">✕</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-tab="login">Entrar</button>
+      <button class="auth-tab"        data-auth-tab="cadastro">Criar conta</button>
+    </div>
+    <div class="auth-form active" id="auth-form-login">
+      <button class="btn-google" id="btn-auth-google">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6c1.8-5.4 6.8-9.8 13.5-9.8z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.2 5.6c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.7 0-12.3-4.5-14.3-10.6l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+        Entrar com Google
+      </button>
+      <div class="auth-ou"><span>ou</span></div>
+      <div class="field"><label>Email</label><input type="email" id="auth-login-email" placeholder="seu@email.com" autocomplete="email"></div>
+      <div class="field"><label>Senha</label><input type="password" id="auth-login-pass" placeholder="••••••••"></div>
+      <div id="auth-login-erro" class="form-erro" style="display:none"></div>
+      <button class="btn btn-primary" id="btn-auth-login">ENTRAR</button>
+    </div>
+    <div class="auth-form" id="auth-form-cadastro">
+      <button class="btn-google" id="btn-auth-google-cad">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6c1.8-5.4 6.8-9.8 13.5-9.8z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.2 5.6c4.2-3.9 6.6-9.6 6.6-16.5z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.2-5.6c-2 1.4-4.6 2.2-8 2.2-6.7 0-12.3-4.5-14.3-10.6l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+        Cadastrar com Google
+      </button>
+      <div class="auth-ou"><span>ou</span></div>
+      <div class="field"><label>Nome completo</label><input type="text" id="auth-cad-nome" placeholder="Seu nome completo"></div>
+      <div class="row-2">
+        <div class="field"><label>Nascimento</label><input type="date" id="auth-cad-nasc"></div>
+        <div class="field"><label>Email</label><input type="email" id="auth-cad-email" placeholder="seu@email.com"></div>
+      </div>
+      <div class="field"><label>Senha</label><input type="password" id="auth-cad-pass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="field"><label>Confirmar senha</label><input type="password" id="auth-cad-pass2" placeholder="Repita a senha"></div>
+      <div id="auth-cad-erro" class="form-erro" style="display:none"></div>
+      <button class="btn btn-primary" id="btn-auth-cadastro">CRIAR CONTA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEUS PEDIDOS -->
+<div class="modal-bg" id="modal-pedidos">
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-head">
-      <div class="modal-title" id="modal-ped-title">📦 Pedido</div>
-      <div class="modal-close" onclick="fecharModal('modal-pedido')">✕</div>
+      <div class="modal-title">📦 Meus pedidos</div>
+      <div class="modal-close" onclick="fecharModal('modal-pedidos')">✕</div>
     </div>
-    <div id="modal-ped-content"></div>
-    <div class="divider"></div>
-    <div class="status-section-label">Atualizar status</div>
-    <div class="status-btns">
-      <button class="status-btn sb-pendente"   onclick="atualizarStatus('PENDENTE')">🕐 Pendente</button>
-      <button class="status-btn sb-confirmado" onclick="atualizarStatus('CONFIRMADO')">✅ Confirmado</button>
-      <button class="status-btn sb-preparo"    onclick="atualizarStatus('PREPARO')">👨‍🍳 Em preparo</button>
-      <button class="status-btn sb-pronto"     onclick="atualizarStatus('PRONTO')">🎉 Pronto!</button>
-    </div>
-    <button class="btn btn-ghost" style="margin-top:12px" onclick="fecharModal('modal-pedido')">Fechar</button>
+    <div id="lista-meus-pedidos"><div class="empty-state">Carregando...</div></div>
   </div>
 </div>
 
 <div class="loading-overlay" id="loading"><div class="loading-spinner"></div></div>
 <div id="toast"></div>
 
-<script src="js/painel-config.js"></script>
-<script src="js/painel-auth.js"></script>
-<script src="js/painel-produtos.js"></script>
-<script src="js/painel-pedidos.js"></script>
-<script src="js/painel-dono.js"></script>
-<script src="js/painel-main.js"></script>
+<!-- JS -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/carrinho.js"></script>
+<script src="js/cardapio.js"></script>
+<script src="js/checkout.js"></script>
+<script src="js/pedidos.js"></script>
+<script src="js/main.js"></script>
+<!-- Botões Google extra -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  ['btn-co-google','btn-co-google-cad','btn-auth-google','btn-auth-google-cad'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', async () => {
+      await loginGoogle();
+      if (currentUser) {
+        fecharModal('modal-auth');
+        // Se estava no checkout, avança
+        const stepAuth = document.getElementById('step-auth');
+        if (stepAuth?.classList.contains('active')) {
+          irStep('step-pagamento'); preencherResumo();
+        }
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>
