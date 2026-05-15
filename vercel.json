@@ -1,80 +1,22 @@
 {
   "version": 2,
   "name": "pegpao",
-  "builds": [
-    {
-      "src": "api/criar-pagamento.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/asaas-pagamento.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "painel/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "builds": [{ "src": "**/*", "use": "@vercel/static" }],
   "routes": [
-    {
-      "src": "/api/criar-pagamento",
-      "dest": "/api/criar-pagamento.js"
-    },
-    {
-      "src": "/api/asaas-pagamento",
-      "dest": "/api/asaas-pagamento.js"
-    },
-    {
-      "src": "/painel",
-      "dest": "/painel/index.html"
-    },
-    {
-      "src": "/painel/(.*)",
-      "dest": "/painel/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/painel",      "dest": "/painel/index.html" },
+    { "src": "/painel/(.*)", "dest": "/painel/$1" },
+    { "src": "/(.*)",        "dest": "/$1" }
   ],
   "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "POST, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
-        }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "X-Frame-Options",        "value": "DENY" }
+    ]},
+    { "source": "/painel/(.*)", "headers": [
+      { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+    ]},
+    { "source": "/assets/(.*)", "headers": [
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ]}
   ]
 }
