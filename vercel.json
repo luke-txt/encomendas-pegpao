@@ -15,23 +15,19 @@
       "use": "@vercel/node"
     },
     {
-      "src": "index.html",
+      "src": "**/*.html",
       "use": "@vercel/static"
     },
     {
-      "src": "css/**",
+      "src": "**/*.css",
       "use": "@vercel/static"
     },
     {
-      "src": "js/**",
+      "src": "**/*.js",
       "use": "@vercel/static"
     },
     {
       "src": "assets/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "painel/**",
       "use": "@vercel/static"
     }
   ],
@@ -49,36 +45,12 @@
       "dest": "/api/asaas-webhook.js"
     },
     {
-      "src": "/css/(.*)",
-      "dest": "/css/$1"
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "/js/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/painel/css/(.*)",
-      "dest": "/painel/css/$1"
-    },
-    {
-      "src": "/painel/js/(.*)",
-      "dest": "/painel/js/$1"
-    },
-    {
       "src": "/painel",
       "dest": "/painel/index.html"
     },
     {
-      "src": "/painel/(.*)",
-      "dest": "/painel/$1"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
     }
   ],
   "headers": [
