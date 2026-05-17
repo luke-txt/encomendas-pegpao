@@ -27,7 +27,15 @@
       "use": "@vercel/static"
     },
     {
-      "src": "**/*.js",
+      "src": "css/**/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "painel/js/**/*.js",
       "use": "@vercel/static"
     },
     {
