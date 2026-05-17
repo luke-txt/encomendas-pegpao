@@ -5,18 +5,18 @@
 //
 //  Após fazer deploy, cadastre a URL do webhook no Asaas:
 //  Sandbox: https://sandbox.asaas.com → Integrações → Webhooks
-//  URL: https://encomendas-pegpao.vercel.app/api/asaas-webhook
+//  URL: https://sua-url-da-vercel.app/api/asaas-webhook
 //  Eventos: PAYMENT_CONFIRMED, PAYMENT_RECEIVED, PAYMENT_OVERDUE
 //
 //  Variáveis de ambiente necessárias no Vercel:
 //  FIREBASE_DB_URL    = https://encomendas-pegpao-default-rtdb.firebaseio.com
-//  FIREBASE_SA_KEY    = JSON da service account do Firebase (veja instruções abaixo)
+//  FIREBASE_SA_KEY    = JSON da service account minificado (sem quebras de linha)
 // ══════════════════════════════════════════════
 
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getDatabase }                  from 'firebase-admin/database';
 
-// Inicializa o Firebase Admin (só uma vez)
+// Inicializa o Firebase Admin
 function getDb() {
   if (!getApps().length) {
     initializeApp({
@@ -51,29 +51,19 @@ export default async function handler(req, res) {
   try {
     const db = getDb();
 
-    // Busca o pedido nos pedidos_cliente para descobrir o UID e a padaria
-    // Estratégia: busca em pedidos de todas as padarias pelo número
-    const pedidosSnap = await db.ref('pedidos').once('value');
-    const todasPadarias = pedidosSnap.val() || {};
+    // NOVO: Busca super rápida apenas no índice criado na hora da compra
+    const indexSnap = await db.ref(`pedidos_index/${numeroPedido}`).once('value');
+    const indexData = indexSnap.val();
 
-    let padariaId = null;
-    let clienteUid = null;
-
-    // Percorre padarias para achar o pedido
-    for (const [padId, pedidos] of Object.entries(todasPadarias)) {
-      if (pedidos[numeroPedido]) {
-        padariaId  = padId;
-        clienteUid = pedidos[numeroPedido].clienteUid;
-        break;
-      }
-    }
-
-    if (!padariaId) {
-      console.warn('[Webhook] Pedido não encontrado no Firebase:', numeroPedido);
+    if (!indexData) {
+      console.warn('[Webhook] Pedido não encontrado no índice:', numeroPedido);
       return res.status(200).json({ ok: true, pedido_nao_encontrado: true });
     }
 
-    // Atualiza status para CONFIRMADO nas duas coleções
+    const padariaId = indexData.padariaId;
+    const clienteUid = indexData.clienteUid;
+
+    // Atualiza status para CONFIRMADO nas duas coleções e encerra
     const updates = {};
     updates[`pedidos/${padariaId}/${numeroPedido}/status`]          = 'CONFIRMADO';
     updates[`pedidos/${padariaId}/${numeroPedido}/pagamentoConfirmadoEm`] = Date.now();
