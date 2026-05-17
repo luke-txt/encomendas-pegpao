@@ -208,9 +208,12 @@ async function confirmarPedido() {
   };
 
   try {
-    // 1. Salva pedido no Firebase
+    // 1. Salva pedido no Firebase nas coleções originais
     await db.ref('pedidos/' + padariaEscolhida.id + '/' + num).set(pedido);
     await db.ref('pedidos_cliente/' + currentUser.uid + '/' + num).set(pedido);
+
+    // NOVO: 1.5. Salva no índice rápido para o webhook achar na mesma hora
+    await db.ref('pedidos_index/' + num).set({ padariaId: padariaEscolhida.id, clienteUid: currentUser.uid });
 
     // 2. Gera link de pagamento no Asaas
     const linkPagamento = await gerarLinkAsaas(pedido);
@@ -230,7 +233,6 @@ async function confirmarPedido() {
 
     } else {
       // Asaas falhou — mostra step de confirmação mesmo assim
-      // e salva o pedido como pendente para acompanhar no painel
       carrinho = [];
       atualizarCarrinho();
       enviarEmailPedido(pedido);
@@ -265,7 +267,6 @@ async function gerarLinkAsaas(pedido) {
         clienteEmail: pedido.clienteEmail,
         clienteNome:  pedido.clienteNome,
         dataRetirada: pedido.dataRetirada,
-        // clienteCpf: pedido.clienteCpf || '',  // descomente se coletar CPF no cadastro
       }),
     });
 
@@ -280,7 +281,7 @@ async function gerarLinkAsaas(pedido) {
     await db.ref('pedidos/' + pedido.padaria + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
     await db.ref('pedidos_cliente/' + pedido.clienteUid + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
 
-    return data.linkPagamento; // invoiceUrl do Asaas
+    return data.linkPagamento; 
 
   } catch(e) {
     console.error('[gerarLinkAsaas] Exception:', e);
@@ -290,15 +291,5 @@ async function gerarLinkAsaas(pedido) {
 
 // ── E-mail ────────────────────────────────────
 function enviarEmailPedido(pedido) {
-  // Configure no emailjs.com e descomente:
-  // emailjs.send('SERVICE_ID', 'TEMPLATE_PEDIDO', {
-  //   to_email:     pedido.clienteEmail,
-  //   to_name:      pedido.clienteNome,
-  //   pedido_num:   pedido.num,
-  //   padaria:      pedido.padariaNome,
-  //   data_retirada: fmtData(pedido.dataRetirada),
-  //   total:        fmtPreco(pedido.total),
-  //   itens:        pedido.itens.map(i => `${i.qty}x ${i.nome}${i.sabor ? ' (' + i.sabor + ')' : ''}`).join(', ')
-  // }, 'PUBLIC_KEY');
   console.log('[Email] Pedido', pedido.num, '→', pedido.clienteEmail);
 }
