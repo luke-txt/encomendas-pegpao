@@ -77,10 +77,6 @@ export default async function handler(req, res) {
         externalReference: numeroPedido,
         postalService:     false,
         // URL de retorno após pagamento
-        callback: {
-          successUrl: `${SITE_URL}/?pagamento=sucesso&pedido=${numeroPedido}`,
-          autoRedirect: true,
-        },
       }),
     });
 
