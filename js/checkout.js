@@ -212,8 +212,6 @@ async function confirmarPedido() {
     await db.ref('pedidos/' + padariaEscolhida.id + '/' + num).set(pedido);
     await db.ref('pedidos_cliente/' + currentUser.uid + '/' + num).set(pedido);
 
-    // NOVO: 1.5. Salva no índice rápido para o webhook achar na mesma hora
-    await db.ref('pedidos_index/' + num).set({ padariaId: padariaEscolhida.id, clienteUid: currentUser.uid });
 
     // 2. Gera link de pagamento no Asaas
     const linkPagamento = await gerarLinkAsaas(pedido);
