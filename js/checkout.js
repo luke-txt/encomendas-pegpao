@@ -256,6 +256,13 @@ async function confirmarPedido() {
 // ── Gera link Asaas via /api/asaas-pagamento ──
 async function gerarLinkAsaas(pedido) {
   try {
+    // Busca CPF do cliente no Firebase
+    let clienteCpf = '';
+    try {
+      const clienteSnap = await db.ref('clientes/' + pedido.clienteUid).once('value');
+      clienteCpf = clienteSnap.val()?.cpf || '';
+    } catch(e) { console.warn('[CPF] Não encontrado:', e); }
+
     const res = await fetch('/api/asaas-pagamento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -264,6 +271,7 @@ async function gerarLinkAsaas(pedido) {
         total:        pedido.total,
         clienteEmail: pedido.clienteEmail,
         clienteNome:  pedido.clienteNome,
+        clienteCpf,
         dataRetirada: pedido.dataRetirada,
       }),
     });
