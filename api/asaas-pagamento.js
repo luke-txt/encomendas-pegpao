@@ -76,10 +76,6 @@ export default async function handler(req, res) {
         description:       `Pedido PegPão #${numeroPedido} — Retirada: ${dataRetirada}`,
         externalReference: numeroPedido,
         postalService:     false,
-        callback: {
-          successUrl:   `${SITE_URL}/?pagamento=sucesso&pedido=${numeroPedido}`,
-          autoRedirect: true,
-        },
       }),
     });
 
