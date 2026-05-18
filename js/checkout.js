@@ -283,9 +283,11 @@ async function gerarLinkAsaas(pedido) {
       return null;
     }
 
-    // Salva o ID da cobrança no Firebase para rastrear webhook
-    await db.ref('pedidos/' + pedido.padaria + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
-    await db.ref('pedidos_cliente/' + pedido.clienteUid + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
+    // Salva o ID da cobrança no Firebase (silencioso — não bloqueia o redirect)
+    try {
+      await db.ref('pedidos/' + pedido.padaria + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
+      await db.ref('pedidos_cliente/' + pedido.clienteUid + '/' + pedido.num + '/asaasId').set(data.cobrancaId);
+    } catch(e) { console.warn('[asaasId]', e.message); }
 
     return data.linkPagamento; 
 
